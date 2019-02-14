@@ -1,0 +1,7 @@
+install.packages("tidyverse")
+install.packages("readxl")
+library(readxl)
+readxl_example()
+readxl_example(“deaths.xls”)xlsx_example<- readxl_example(“datasets.xlsx)read_excel(xlsx_example)
+excel_sheets(xlsx_example)
+read_excel(xlsx_example, sheet=“chickwts”)

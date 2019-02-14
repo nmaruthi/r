@@ -1,0 +1,491 @@
+==========
+	R
+==========
+
+> Inspecting data:
+	
+	> nrow(sales)
+	[1] 5000
+
+	> ncol(sales)
+	[1] 46
+
+	> dim(sales)
+	[1] 5000 46
+
+	> head(sales)
+	Gives the first 6 rows by default
+
+	> names(sales)
+	View the column names of sales
+
+	> str(sales)
+		'data.frame':	5000 obs. of  46 variables:
+		 $ X                     : int  1 2 3 4 5 6 7 8 9 10 ...
+		 $ event_id              : chr  "abcaf1adb99a935fc661"	
+
+	> summary(sales) - Gives a summary of all columns
+		   X          event_id         primary_act_id     secondary_act_id  
+	 Min.   :   1   Length:5000        Length:5000        Length:5000       
+	 1st Qu.:1251   Class :character   Class :character   Class :character  
+	 Median :2500   Mode  :character   Mode  :character   Mode  :character  
+	 Mean   :2500                                                           
+	 3rd Qu.:3750                                                           
+	 Max.   :5000    	
+
+> Apply function to all columns:
+	
+	> lapply()
+	lapply(my_data_frame[, cols], function_name)
+	
+	# Load stringr
+	library(stringr)
+	# Find columns of sales5 containing "dt": date_cols
+	date_cols <- str_detect(names(sales5), "dt")
+	# Load lubridate
+	library(lubridate)
+	# Coerce date columns into Date objects
+	sales5[, date_cols] <- lapply(sales5[, date_cols], ymd)
+
+	# Find date columns (don't change)
+	date_cols <- str_detect(names(sales5), "dt")
+
+	# Create logical vectors indicating missing values (don't change)
+	missing <- lapply(sales5[, date_cols], is.na)
+
+
+	> sapply() - Outputs a vector instead of a list
+	# Create logical vectors indicating missing values (don't change)
+	missing <- lapply(sales5[, date_cols], is.na)
+
+	# Create a numerical vector that counts missing values: num_missing
+	num_missing <- sapply(missing, sum)
+
+> Subsetting data:
+
+	my_df[1:5, ] # First 5 rows of my_df
+	my_df[, 4]   # Fourth column of my_df
+	my_df[-(1:5), ] # Omit first 5 rows of my_df
+	my_df[, -4]     # Omit fourth column of my_df
+	sales2 <- sales[,2:46] #Remove the first column of sales: sales2
+
+	#Remove multiple rows :
+	mbta2 <- mbta[-c(1,7,11),]
+
+	# Define a vector of column indices: keep
+	keep <- c(5:(ncol(sales2)-15))
+
+	# Subset sales2 using keep: sales3
+	sales3 <- sales2[,keep]	
+
+	# Define an issues vector
+	issues <- c(2516, 3863, 4082, 4183)
+	# Print values of sales_ord_create_dttm at these indices
+	sales3$sales_ord_create_dttm[issues]
+	# Print a well-behaved value of sales_ord_create_dttm
+	sales3$sales_ord_create_dttm[2517]	
+
+	# Define vector of duplicate cols (don't change)
+	duplicates <- c(4, 6, 11, 13, 15, 17, 18, 20, 22, 
+	                24, 25, 28, 32, 34, 36, 38, 40, 
+	                44, 46, 48, 51, 54, 65, 158)
+
+	# Remove duplicates from food: food2
+	food2 <- food[,-duplicates]
+
+	Subsetting based on column name
+	# Create vector of column indices: nutrition
+	nutrition <- str_detect(names(food3), "100g")
+
+	# View a summary of nutrition columns
+	summary(food3[nutrition])
+
+	#Subset with condition
+	food4 <- food3[which(food3$sugars_100g>0), ]
+
+	# Subset just elementary schools: att_elem
+	att_elem <- att3[, c(1,6,7)]
+	# Subset just secondary schools: att_sec
+	att_sec <- att3[, c(1,8,9)]
+	# Subset all schools: att4
+	att4 <- att3[, c(1:5)]
+
+> Renaming columns of a data set
+## att4 is pre-loaded
+
+# Define cnames vector (don't change)
+cnames <- c("state", "avg_attend_pct", "avg_hr_per_day", 
+            "avg_day_per_yr", "avg_hr_per_yr")
+# Assign column names of att4
+colnames(att4) <- cnames
+# Remove first two rows of att4: att5
+att5 <- att4[-c(1:2),]
+
+
+> tidyr package
+
+A dataset is called tidy when every row is an observation and every column is a variable
+
+	> Seperating columns:
+		# Split event_date_time: sales4
+		sales4 <- separate(sales3, event_date_time, 
+		                   c("event_dt", "event_time"), sep = " ")
+		# Split sales_ord_create_dttm: sales5
+		sales5 <- separate(sales4, sales_ord_create_dttm, 
+		                   c("ord_create_dt", "ord_create_time"), sep = " ")	
+		mbta6 <- separate(mbta5, month, c("month", "year"), sep="-")	
+
+	> Uniting columns:
+		unite(country_data, country_iso, country, iso, sep="-")
+		sales6 <- unite(sales5, "venue_city_state", venue_city, venue_state, sep=", ")
+	
+	> Making a wide data set long (Converting variables to observations)
+		gather(dataset, key, value, -col)
+		mbta4 <- gather(mbta3, month, thou_riders,-mode)
+
+		gather(key, Value, -Species)
+		We need to specify the categorical variable with the "-". 
+		All the columns will be collapsed into a row named key, and
+		all the rows for the column will be put into a new column named value
+		iris :
+			    Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+			1          5.1         3.5          1.4         0.2  setosa
+			2          4.9         3.0          1.4         0.2  setosa
+			3          4.7         3.2          1.3         0.2  setosa
+			4          4.6         3.1          1.5         0.2  setosa
+			5          5.0         3.6          1.4         0.2  setosa
+			6          5.4         3.9          1.7         0.4  setosa
+		iris after gather function :
+			Species          key     Value
+			1  setosa Sepal.Length   5.1
+			2  setosa Sepal.Length   4.9
+			3  setosa Sepal.Length   4.7
+			4  setosa Sepal.Length   4.6
+			5  setosa Sepal.Length   5.0
+			6  setosa Sepal.Length   5.4
+
+		iris.tidy <- iris %>%
+		  gather(key, Value, -Species) %>%
+		  separate(key, c("Part", "Measure"), "\\.")
+
+	> Making a long data set wide
+		spread(long_df, my_key, my_val)
+		# Spread the contents of mbta4: mbta5
+		mbta5 <- spread(mbta4, mode, thou_riders)
+		month | mode | thou_riders
+
+		month | Boat | Bus | Commuter Rail | Heavy Rail | Light Rail | Private Bus | RIDE | Trackless Trolley
+		2007-01 | 4.0 | 335.819 | 142.2 | 435.294 | 227.231 | 4.772 | 4.9 | 12.757
+  
+  	Making iris data set wide
+	# Add column with unique ids (don't need to change)
+	iris$Flower <- 1:nrow(iris)
+	# Fill in the ___ to produce to the correct iris.wide dataset
+	iris.wide <- iris %>%
+	  gather(key, value, -Species, -Flower) %>%
+	  separate(key, c("Part", "Measure"), "\\.") %>%
+	  spread(Measure, value)
+
+> Type conversions:
+	> as.character(2016)
+	[1] "2016"
+	> as.numeric(TRUE)
+	[1] 1
+	> as.integer(99)
+	[1] 99
+	> as.factor("something")
+	[1] something
+	Levels : something
+	> as.logical(0)
+	[1] FALSE
+	# Coerce thou_riders to numeric
+	mbta4$thou_riders <- as.numeric(mbta4$thou_riders)
+	# Use sapply to coerce cols to numeric
+	att5[, cols] <- sapply(att5[, cols], as.numeric)
+
+> Importing data:
+
+	> From CSV:
+		sales <- read.csv("sales.csv", stringsAsFactors = FALSE)
+
+	> From excel:
+	> readxl package
+		read_excel("mbta.xlsx")
+
+	> Data.table package
+	library(data.table)
+	# Import food.csv as a data frame: df_food
+	df_food <- fread("food.csv", data.table=FALSE)
+
+	> Gdata package
+	Alternate to read_excel. Provides an enture suite of tools for data manipulation.
+	Support for xlsx with additional driver. This is an elegant extension of utils package.
+	read.xls() wraps around read.table()
+	
+	library(gdata)
+	# Import the spreadsheet: att
+	att <- read.xls("attendance.xls")
+
+> Aggregate functions in R:
+	min, max, mean, sd, var, sum, length, median, IQR, 
+
+	dplyr aggregate finctions:
+	first, n, last, n_distinct, nth
+
+	min(x) - minimum value of vector x.
+	max(x) - maximum value of vector x.
+	mean(x) - mean value of vector x.
+	median(x) - median value of vector x.
+	quantile(x, p) - pth quantile of vector x.
+	sd(x) - standard deviation of vector x.
+	var(x) - variance of vector x.
+	IQR(x) - Inter Quartile Range (IQR) of vector x.
+	diff(range(x)) - total range of vector x.
+
+> dplyr verbs :
+	> summarize()
+	Ex.
+	summarize(hflights, min_dist = min(Distance), max_dist=max(Distance))
+	summarize(filter(hflights, Diverted==1), max_div = max(Distance))
+	# hflights is available
+
+	# Remove rows that have NA ArrDelay: temp1
+	temp1 <- filter(hflights, !is.na(ArrDelay))
+
+	# Generate summary about ArrDelay column of temp1
+	summarize(temp1, earliest = min(ArrDelay), average = mean(ArrDelay), latest = max(ArrDelay), sd = sd(ArrDelay))
+
+	# Keep rows that have no NA TaxiIn and no NA TaxiOut: temp2
+	temp2 <- filter(hflights, !is.na(TaxiIn) & !is.na(TaxiOut))
+
+	# Print the maximum taxiing difference of temp2 with summarize()
+	summarize(temp2, max_taxi_diff = max(abs(TaxiIn - TaxiOut)))
+
+	summarize(aa, 
+          n_flights = n(), 
+          n_canc = sum(Cancelled == 1),
+          avg_delay = mean(ArrDelay, na.rm = TRUE))
+
+	> Aggregate functions
+	first(x) - The first element of vector x.
+	last(x) - The last element of vector x.
+	nth(x, n) - The nth element of vector x.
+	n() - The number of rows in the data.frame or group of observations that summarize() describes.
+	n_distinct(x) - The number of unique values in vector 
+
+> Type conversion using dplyr
+	# Change columns to numeric using dplyr
+	library(dplyr)
+	example <- mutate_at(att5, vars(-state), funs(as.numeric))
+
+> Pipes
+	Pronoun - THEN
+	Pipe comes from the magrittr package, dplyr imports pipe
+
+	object %>% function(___, arg1, arg2...)
+
+	a %>%
+		select(X, Y, Z) %>%
+		filter(X > Y) %>%
+		mutate(Q = X + Y + Z) %>%
+		summarize(all = sum(Q))
+
+	Take dataset a, select columns X,Y,Z, then filter rows where X is greater than Y,
+	then mutate the data to include new variable Q that is equal to X+y+z, then total
+	the data to show a total that is equal to the sum of Q.	
+
+	Below statements are equivalent:
+	mean(c(1, 2, 3, NA), na.rm = TRUE)
+	c(1, 2, 3, NA) %>% mean(na.rm = TRUE)
+
+	The %>% operator allows you to extract the first argument of a function from the arguments list and put it in front of it, thus solving the Dagwood sandwich problem.
+
+	hflights %>%
+	  mutate(diff = TaxiOut-TaxiIn) %>%
+	  filter(!is.na(diff)) %>%
+	  summarize(avg = mean(diff))
+
+	 # Chain together mutate(), filter() and summarize()
+	hflights %>%
+	  mutate(RealTime = ActualElapsedTime+100, mph = 60*Distance/RealTime) %>%
+	  filter(!is.na(mph) & mph<70) %>%
+	  summarize(n_less = n(), n_dest = n_distinct(Dest), min_dist = min(Distance), max_dist = max(Distance))
+
+	# Finish the command with a filter() and summarize() call
+	hflights %>%
+	  mutate(
+	    RealTime = ActualElapsedTime + 100, 
+	    mph = 60 * Distance / RealTime
+	  ) %>%
+	  filter(
+	    mph < 105 |
+	    Cancelled == 1 |
+	    Diverted == 1
+	  ) %>%
+	  summarize(
+	    n_non = n(),
+	    n_dest = n_distinct(Dest),
+	    min_dist = min(Distance),
+	    max_dist = max(Distance)
+	  )
+	  
+> group_by
+	When used with summarize, it will calculate summaries for the given group, instead of the whole data set
+	group_by(df, group)
+
+	hflights %>%
+	   group_by(UniqueCarrier) %>%
+	   summarize(
+	     p_canc = 100 * mean(Cancelled == 1), 
+	     avg_delay = mean(ArrDelay, na.rm = TRUE)
+	   ) %>%
+	   arrange(avg_delay, p_canc)
+
+	You can also combine group_by() with mutate(). When you mutate grouped data, mutate() will calculate the new variables independently for each group. 
+
+	# Find the most visited destination for each carrier
+	hflights %>% 
+	  group_by(UniqueCarrier, Dest) %>%
+	  summarize(n = n()) %>%
+	  mutate(rank = rank(desc(n))) %>%
+	  filter(rank == 1)
+
+> Graphs
+	
+	Principles of Graphics:
+	1. Graphics are made up of distinct layers of grammatical elements
+	2. Meaningful plots through aesthetic mapping
+
+	> Essential grammatical elements:
+	Data : The dataset that is being plotted
+	Aesthetics : The scales onto which we map our data
+	Geometrics : The visual elements used for our data
+	---
+	Facets : Plotting small multiples
+	Statistics : Representations of our data to aid understanding
+	Coordinates : The space on which the data will be plotted
+	Themes : All non-data ink
+
+	> Histogram
+		hist(mbta6$Boat)
+		hist(food4$sugars_100g, breaks=100)
+
+> Graphs with base plot package
+	# Below will color the points as per the mtcars$cyl
+	plot(mtcars$wt, mtcars$mpg, col = mtcars$cyl)
+
+	plot(mtcars$wt, mtcars$mpg, col = mtcars$cyl)
+	lapply(mtcars$cyl, function(x) {
+	  abline(lm(mpg ~ wt, mtcars, subset = (cyl == x)), col = x)
+	  })
+
+	# Below will draw a scatter plot with a fitting line and a legend 
+	plot(mtcars$wt, mtcars$mpg, col = mtcars$cyl)
+	lapply(mtcars$cyl, function(x) {
+	  abline(lm(mpg ~ wt, mtcars, subset = (cyl == x)), col = x)
+	  })
+	legend(x = 5, y = 33, legend = levels(mtcars$cyl),
+	       col = 1:3, pch = 1, bty = "n")
+
+> Graphs with ggplot2
+	
+	ggplot2 produces an object which can be manipulated, whereas the base plotting package produces an image
+
+	Shape arugument can only be used with categorical data.
+	geom_point() - draws a scatter plots
+	geom_smooth() - draws a smoothed line over the points.
+
+	> Below two snippets produce a scatter plot
+	ggplot(mtcars, aes(x = cyl, y = mpg)) + geom_point()
+	# Change the command below so that cyl is treated as factor
+	ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+	  geom_point()
+
+	# A scatter plot has been made for you
+	ggplot(mtcars, aes(x = wt, y = mpg)) +
+	  geom_point()
+
+	# Creates a color coded legend. Higer disp will be lighter.
+	ggplot(mtcars, aes(x = wt, y = mpg, color = disp)) +
+	  geom_point()
+
+	# Higher disp will be fatter
+	ggplot(mtcars, aes(x = wt, y = mpg, size = disp)) +
+	  geom_point()
+
+	# Change the command below so that cyl is treated as factor
+	ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+	  geom_point()
+
+	# Below draws only a smooth line, and colors accourding to the clarity
+	ggplot(diamonds, aes(x = carat, y = price, color = clarity)) + geom_smooth()
+	# To remove the error shading, set se=FALSE
+	ggplot(diamonds, aes(x = carat, y = price, color = clarity)) + geom_smooth(se = FALSE)
+
+	# Colored scatter plot with points that are 40% opaque
+	ggplot(diamonds, aes(x = carat, y = price, color = clarity)) + geom_point(alpha = 0.4)
+
+	# Scatter plot with colors as per cyl
+	ggplot(mtcars, aes(x = wt, y = mpg, col = cyl)) +
+    geom_point() + # Copy from Plot 1
+    geom_smooth(method="lm", se=FALSE)   # Fill in using instructions Plot 2
+
+    # Scatter plot with colors for each cylinder group, and 
+    # a smooth line for all the groups
+	ggplot(mtcars, aes(x = wt, y = mpg, col = cyl)) +
+	  geom_point() + # Copy from Plot 2
+	  geom_smooth(method=lm, se=FALSE) + # Copy from Plot 2
+	  geom_smooth(aes(group=1))
+	# Scatter plot with a stright line to fit all the points
+	# The group aesthetic will tell ggplot to draw a single linear
+	# model through all the points
+	  ggplot(mtcars, aes(x = wt, y = mpg, col = cyl)) +
+	  geom_point() + # Copy from Plot 2
+	  geom_smooth(method=lm, se=FALSE) + # Copy from Plot 2
+	  geom_smooth(aes(group=1), method ="lm", se=FALSE) 
+
+	  # Creates 2 side by side jitter plots
+	  # Based on measure
+	ggplot(iris.tidy, aes(x = Species, y = Value, col = Part)) + geom_jitter() +
+  facet_grid(. ~ Measure)
+
+	# Other ways to declare
+	dia_plot <- ggplot(diamonds, aes(x = carat, y = price))
+	dia_plot + geom_point
+	dia_plot + geom_point(aes(color = clarity))
+
+	dia_plot <- ggplot(diamonds, aes(x = carat, y = price))
+	dia_plot <- dia_plot + geom_point(alpha = 0.2)
+	dia_plot + geom_smooth(se = FALSE)
+	dia_plot + geom_smooth(aes(col = clarity), se = FALSE)
+
+> Other utility functions:
+
+	# Find the row number of the incorrect value: i
+	i <- which(mbta6$Boat>39)
+	mbta6$Boat>39 returns a set of T/F values for all rows of the given variable. which() returns index of the row for TRUE values
+
+	# Replace the incorrect value with 4
+	mbta6$Boat[i] <- 4	
+
+	# Replace strings
+	library(stringr)
+	# Remove all periods in state column
+	att5$state <- str_replace_all(att5$state, "\\.", "")
+	# Remove white space around state names
+	att5$state <- str_trim(att5$state)	
+
+> Iris data set:
+	- Contains data about 3 species of Iris - Setosa, Versicolor & Virginica
+	- 50 specimen of each species - 150 obs in all
+	- Sepal & Petal length & width
+
+> Limitations of base plot()
+	1. Plot does not get re-drawn
+	2. Plot is drawn as an  image
+	3. Need to manually add a legend.
+	4. No unified framework for plotting
+
+> Linear model:
+	Use the lm() function. Here mtcars$wt is the independent variable & mtcars$mpg is the dependent variable
+	carModel <- lm(mpg ~ wt, data = mtcars)
